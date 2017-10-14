@@ -1,17 +1,22 @@
 #!/bin/env python
 
+""" TODO
+    Get rid of the dependency on the helper script
+    A counter of how much data has been downloaded
+"""
+
 import os
 import sys
 import time
-import threading
 
-from PyQt5 import QtWidgets, QtGui
+from PyQt5 import QtWidgets, QtGui, QtCore
 import BackgrounderUI
 import vpn_functions
 
 if os.geteuid() != 0:
     print('I need root.')
     exit(1)
+
 
 class Options:
     all_vpns = vpn_functions.all_vpns()
@@ -29,26 +34,33 @@ class MainUI(QtWidgets.QMainWindow, BackgrounderUI.Ui_MainWindow):
         window_icon = QtGui.QIcon(os.path.dirname(__file__) + '/mega.png')
         self.setWindowIcon(window_icon)
 
+        # Associate all push buttons with their actions
         self.connectButton.clicked.connect(self.connect_vpn)
         self.incrementButton.clicked.connect(self.increment_vpn)
         self.disconnectButton.clicked.connect(self.disconnect_vpn)
 
+        # Set a check timer to go off every 2000 ms
+        self.timer = QtCore.QTimer(self)
+        self.timer.timeout.connect(self.all_update)
+        self.timer.start(2000)
+
+        # Populate the combo boxes with the names of the vpns
         self.countryCode.addItems(Options.vpn_countries)
         self.countryCode.currentIndexChanged.connect(self.country_code)
         self.set_combobox_values()
 
     def set_combobox_values(self):
-        # The server number needs to be set only once
         current_vpn = vpn_functions.get_current_connection()
         if current_vpn:
-            self.countryCode.setCurrentIndex(self.countryCode.findText(current_vpn[0][:2]))
-            self.serverNumber.setCurrentIndex(self.serverNumber.findText(current_vpn[0][2:]))
+            self.countryCode.setCurrentIndex(
+                self.countryCode.findText(current_vpn[0][:2]))
+            self.serverNumber.setCurrentIndex(
+                self.serverNumber.findText(current_vpn[0][2:]))
         else:
             self.countryCode.setCurrentIndex(self.countryCode.findText('de'))
         self.all_update()
 
     def all_update(self):
-
         if not Options.update_needed:
             return
 
@@ -109,23 +121,42 @@ class MainUI(QtWidgets.QMainWindow, BackgrounderUI.Ui_MainWindow):
         self.serverNumber.clear()
         self.serverNumber.addItems(Options.all_vpns[selected_country])
 
+    def closeEvent(self, event):
+        event.ignore()
+        self.setHidden(True)
 
-def updater():
-    while True:
-        form.all_update()
-        time.sleep(2)
+
+class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
+    def __init__(self, icon, parent=None):
+        QtWidgets.QSystemTrayIcon.__init__(self, icon, parent)
+
+        self.menu = QtWidgets.QMenu(parent)
+        exitAction = self.menu.addAction("Exit")
+        exitAction.triggered.connect(QtWidgets.qApp.exit)
+        self.setContextMenu(self.menu)
+        self.activated.connect(self.clickety)
+
+    def clickety(self, reason):
+        if reason == 3:  # Single click
+            if form.isHidden():
+                form.setHidden(False)
+            else:
+                form.setHidden(True)
 
 
 def main():
-    global form
+    global form, systray
     app = QtWidgets.QApplication(sys.argv)
     form = MainUI()
+    window_icon = QtGui.QIcon(os.path.dirname(__file__) + '/mega.png')
+    systray = SystemTrayIcon(window_icon)
     form.show()
+    systray.show()
     app.exec_()
 
 
 if __name__ == '__main__':
-    threading.Thread(target=main).start()
-    time.sleep(1)
-    # daemonizing the worker thread ensures it exits when the main (UI) thread does
-    threading.Thread(target=updater, daemon=True).start()
+    try:
+        main()
+    except KeyboardInterrupt:
+        pass
