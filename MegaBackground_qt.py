@@ -2,12 +2,11 @@
 
 """ TODO
     Get rid of the dependency on the helper script
-    A counter of how much data has been downloaded
+    Pause button
 """
 
 import os
 import sys
-import time
 
 from PyQt5 import QtWidgets, QtGui, QtCore
 import BackgrounderUI
@@ -23,6 +22,9 @@ class Options:
     vpn_countries = [i for i in all_vpns]
     vpn_countries.sort()
     update_needed = True
+    data_counter = {
+        'previous': 0,
+        'current': 0}
 
 
 class MainUI(QtWidgets.QMainWindow, BackgrounderUI.Ui_MainWindow):
@@ -31,8 +33,12 @@ class MainUI(QtWidgets.QMainWindow, BackgrounderUI.Ui_MainWindow):
         self.setupUi(self)
 
         self.setFixedSize(758, 123)
-        window_icon = QtGui.QIcon(os.path.dirname(__file__) + '/mega.png')
-        self.setWindowIcon(window_icon)
+        # window_icon = QtGui.QIcon(os.path.dirname(__file__) + '/mega.png')
+        # self.setWindowIcon(window_icon)
+
+        # Keyboard shortcuts
+        self.exit_shortcut = QtWidgets.QShortcut(QtGui.QKeySequence('Ctrl+Q'), self)
+        self.exit_shortcut.activated.connect(QtWidgets.qApp.exit)
 
         # Associate all push buttons with their actions
         self.connectButton.clicked.connect(self.connect_vpn)
@@ -64,6 +70,10 @@ class MainUI(QtWidgets.QMainWindow, BackgrounderUI.Ui_MainWindow):
         if not Options.update_needed:
             return
 
+        def calculate_total():
+            total_data = Options.data_counter['previous'] + Options.data_counter['current']
+            return ' | Total: ' + '{0:.2}'.format(total_data) + ' GiB'
+
         current_vpn = vpn_functions.get_current_connection()
         try:
             data_limit = float(self.dataLimit.text())
@@ -77,23 +87,30 @@ class MainUI(QtWidgets.QMainWindow, BackgrounderUI.Ui_MainWindow):
             country = current_vpn[0][:2]
             server_code = current_vpn[0][2:]
             incoming_gbytes = current_vpn[1] * 1e-9
+            Options.data_counter['current'] = incoming_gbytes
 
             if incoming_gbytes > data_limit:
+                Options.data_counter['previous'] += incoming_gbytes
                 self.progressBar.setValue(100)
                 self.increment_vpn()
                 return
 
             percentage = incoming_gbytes * 100 / data_limit
 
-            # Check to see which widget is highlighted
-            self.statusbar.showMessage('Connected to: ' + country + server_code)
+            statusbar_message = (
+                'Connected to: ' + country + server_code +
+                calculate_total())
+            self.statusbar.showMessage(statusbar_message)
             self.progressBar.setValue(percentage)
             self.disconnectButton.setEnabled(True)
             self.incrementButton.setEnabled(True)
         else:
             # Do all of this when the vpn is disconnected
             self.progressBar.setValue(0)
-            self.statusbar.showMessage('Not connected to a VPN')
+            statusbar_message = (
+                'Not connected to a VPN' +
+                calculate_total())
+            self.statusbar.showMessage(statusbar_message)
             self.incrementButton.setEnabled(False)
             self.disconnectButton.setEnabled(False)
             return
@@ -110,6 +127,7 @@ class MainUI(QtWidgets.QMainWindow, BackgrounderUI.Ui_MainWindow):
 
     def increment_vpn(self):
         Options.update_needed = False
+        Options.data_counter['previous'] += Options.data_counter['current']
         self.incrementButton.setEnabled(False)
         self.statusbar.showMessage('Incrementing vpn...')
         vpn_functions.increment_connection()
@@ -145,10 +163,10 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
 
 
 def main():
-    global form, systray
+    global form
     app = QtWidgets.QApplication(sys.argv)
     form = MainUI()
-    window_icon = QtGui.QIcon(os.path.dirname(__file__) + '/mega.png')
+    window_icon = QtGui.QIcon(os.path.dirname(__file__) + '/resources/mega.png')
     systray = SystemTrayIcon(window_icon)
     form.show()
     systray.show()

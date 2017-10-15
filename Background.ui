@@ -19,6 +19,10 @@
   <property name="windowTitle">
    <string>Mega VPN Incrementer - NordVPN</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="resources/resources.qrc">
+    <normaloff>:/Icons/mega.png</normaloff>:/Icons/mega.png</iconset>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
     <item row="0" column="0">
@@ -80,10 +84,40 @@
            </sizepolicy>
           </property>
           <property name="toolTip">
-           <string/>
+           <string>(re)Connect</string>
+          </property>
+          <property name="toolTipDuration">
+           <number>1500</number>
           </property>
           <property name="text">
-           <string>(re)Connect</string>
+           <string/>
+          </property>
+          <property name="icon">
+           <iconset resource="resources/resources.qrc">
+            <normaloff>:/Icons/play.png</normaloff>:/Icons/play.png</iconset>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pauseButton">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="toolTip">
+           <string>Pause</string>
+          </property>
+          <property name="toolTipDuration">
+           <number>1500</number>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="icon">
+           <iconset resource="resources/resources.qrc">
+            <normaloff>:/Icons/pause.png</normaloff>:/Icons/pause.png</iconset>
           </property>
          </widget>
         </item>
@@ -95,8 +129,18 @@
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
-          <property name="text">
+          <property name="toolTip">
            <string>Disconnect</string>
+          </property>
+          <property name="toolTipDuration">
+           <number>1500</number>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="icon">
+           <iconset resource="resources/resources.qrc">
+            <normaloff>:/Icons/stop.png</normaloff>:/Icons/stop.png</iconset>
           </property>
          </widget>
         </item>
@@ -111,8 +155,15 @@
           <property name="toolTip">
            <string>Increment VPN</string>
           </property>
+          <property name="toolTipDuration">
+           <number>1500</number>
+          </property>
           <property name="text">
-           <string>Increment</string>
+           <string/>
+          </property>
+          <property name="icon">
+           <iconset resource="resources/resources.qrc">
+            <normaloff>:/Icons/next.png</normaloff>:/Icons/next.png</iconset>
           </property>
          </widget>
         </item>
@@ -124,6 +175,8 @@
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
- <resources/>
+ <resources>
+  <include location="resources/resources.qrc"/>
+ </resources>
  <connections/>
 </ui>

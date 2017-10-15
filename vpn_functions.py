@@ -4,16 +4,6 @@ import os
 import time
 import subprocess
 
-
-class Colors:
-    CYAN = '\033[96m'
-    YELLOW = '\033[93m'
-    GREEN = '\033[92m'
-    RED = '\033[91m'
-    WHITE = '\033[97m'
-    ENDC = '\033[0m'
-
-
 def all_vpns():
     vpn_dict = {}
     conf_dir = '/etc/openvpn/client'
