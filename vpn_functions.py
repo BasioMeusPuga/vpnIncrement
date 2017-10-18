@@ -81,15 +81,14 @@ def helper_script_shenanigans(start_vpn):
             shell=True)
         return
 
-    start_command = f'sudo nordvpn start {start_vpn}'
     time.sleep(1.5)
+
+    start_command = f'sudo nordvpn start {start_vpn}'
     subprocess.run(
         start_command,
         shell=True,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL)
-
-    time.sleep(3)
 
 
 def increment_connection():
@@ -100,7 +99,7 @@ def increment_connection():
     except TypeError:
         # Account for the possibility of being able to establish a new VPN connection here
         return
-    
+
     vpn_list = get_vpn_list(country_code)
     current_vpn_index = vpn_list.index(current_vpn_name)
     incremented_vpn_index = current_vpn_index + 1
